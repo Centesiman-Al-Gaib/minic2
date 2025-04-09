@@ -1,1 +1,1 @@
-# c2-websocket
+# minic2
