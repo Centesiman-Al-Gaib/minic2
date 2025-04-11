@@ -1,5 +1,7 @@
 package org.server.message;
 
 public enum MessageType {
-    DEBUG
+    INIT,
+    DEBUG,
+    UNKNOWN
 }

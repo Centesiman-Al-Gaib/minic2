@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*.c": "c",
+        "windows.h": "c",
+        "ws2tcpip.h": "c",
+        "winsock2.h": "c",
+        "stdlib.h": "c",
+        "socketmanager.h": "c",
+        "stdio.h": "c"
+    }
+}
