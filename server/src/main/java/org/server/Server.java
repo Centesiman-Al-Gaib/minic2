@@ -1,7 +1,7 @@
 package org.server;
 
+import org.server.handle.Handler;
 import org.server.message.Message;
-import org.server.message.MessageType;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +10,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Random;
 
 public class Server{
 
@@ -45,10 +44,10 @@ public class Server{
                 InputStream in = communicationWithClient.getInputStream();
                 System.out.println("[+] A client has connected...");
 
-                // Reading message type
+                /* READING MESSAGE TYPE */
                 byte type = (byte) in.read();
 
-                //Reading message payload size
+                /* READING PAYLOAD SIZE */
                 byte[] pSize = in.readNBytes(MESSAGE_SIZE_FIELD_SIZE);
                 if(pSize.length == 0)
                 {
@@ -58,7 +57,7 @@ public class Server{
                 ByteBuffer bb = ByteBuffer.wrap(pSize).order(ByteOrder.LITTLE_ENDIAN);
                 int size = bb.getInt();
 
-                //Reading message payload
+                /* READING PAYLOAD */
                 byte[] payloadBytes = in.readNBytes(size);
                 if(payloadBytes.length != size)
                 {
@@ -66,28 +65,31 @@ public class Server{
                     break;
                 }
 
+                /* GET MESSAGE OBJECT */
                 Message message = Message.parseMessage(type, size, payloadBytes);
                 if(message != null)
                 {
+                    /* HANDLE MESSAGE BY TYPE */
                     System.out.println("New message receive");
-                    if(message.getType() == MessageType.INIT){
-                        /* CREATE THE AGENT ID */
-                        Random rand = new Random();
-                        int agentId = (int) (((System.currentTimeMillis() / 1000) + rand.nextInt(100000)) % 100000);
-                        System.out.println(agentId);
-                        ByteBuffer agentBb = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
-                        agentBb.putInt(agentId);
-                        byte[] response = Message.createResponse(MessageType.DEBUG, agentBb.array());
-                        if(response != null)
-                            out.write(response);
-                        else
-                            out.close();
+                    Handler handler = Handler.getHandle(message);
+                    byte[] response = handler.handle();
+                    if(response != null)
+                    {
+                        System.out.println("[+] Sending response to agent...");
+                        out.write(response);
                     }
+
+                    else
+                    {
+                        System.out.println("[-] An error occurred with the response creation...");
+                        out.close();
+                    }
+
                 }
             }
             catch (IOException e)
             {
-                System.out.println(("An error occurred during server initialization..." + e.getMessage()));
+                System.out.println(("[-] An error occurred during server initialization..." + e.getMessage()));
                 throw new IOException();
             }
 

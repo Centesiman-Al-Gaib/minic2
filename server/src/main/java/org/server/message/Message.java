@@ -15,7 +15,7 @@ public abstract class Message {
     {
         MessageType eType;
         switch (type){
-            case 0xA:
+            case 0x1:
                 eType = INIT;
                 return new InitMessage(eType, pSize, payloadBytes);
             case 0xF:
