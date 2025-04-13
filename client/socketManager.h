@@ -3,6 +3,9 @@
 
 #include <Windows.h>
 
+/* Perform networks operations: send and receive messages*/
+
+
 #define SERVER "127.0.0.1"
 #define PORT 8888
 #define PSIZE_FIELD_SIZE 4

