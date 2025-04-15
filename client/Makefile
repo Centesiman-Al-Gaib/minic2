@@ -1,16 +1,16 @@
 TARGET = client.exe
 CC = C:\msys64\ucrt64\bin\gcc.exe
 SRCS = client.c SocketManager.c .\importer\Importer.c .\crypto\Crypto.c
-CFLAGS = -Wall -g
-LIBS = -lws2_32
+CFLAGS = -Wall -g 
+LIBS = -lws2_32 -lcrypt32
 
 all: $(TARGET)
 
 $(TARGET):
 	$(CC) $(SRCS) $(CFLAGS) $(LIBS) -o $(TARGET)
 
-definitions:
-	$(CC) GenerateDefinition.c .\crypto\Crypto.c -o GenerateDefintion.exe
+def:
+	$(CC) GenerateDefinition.c .\crypto\Crypto.c $(CFLAGS) $(LIBS) -o GenerateDefintion.exe
 
 clean:
 	powershell.exe -Command	"erase *.exe"

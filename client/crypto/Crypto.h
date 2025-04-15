@@ -10,6 +10,8 @@
 DWORD hashAscii(PCSTR value);
 DWORD hashWide(LPCWSTR value);
 
+PBYTE encrypt(unsigned char* input, DWORD length);
+DWORD frombase64GetLength(unsigned char* base64string,  DWORD lengthbase64string);
+PBYTE fromBase64GetBlob(unsigned char* base64string,  DWORD lengthbase64string, DWORD blobDataLength);
+
 #endif
-
-

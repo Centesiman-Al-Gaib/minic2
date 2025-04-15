@@ -7,7 +7,7 @@
 #include <Windows.h>
 #include <stdio.h>
 
-HANDLE getModuleHandleCen();
-FARPROC getProcAddrCen(LPCWSTR moduleName, DWORD hash);
+HMODULE getModuleHandleCen(LPCSTR moduleNam);
+FARPROC getProcAddrCen(LPCSTR moduleName, DWORD hash);
 
 #endif

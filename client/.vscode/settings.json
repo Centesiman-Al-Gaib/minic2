@@ -6,6 +6,7 @@
         "winsock2.h": "c",
         "stdlib.h": "c",
         "socketmanager.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "crypto.h": "c"
     }
 }
