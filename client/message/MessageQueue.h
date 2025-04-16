@@ -14,8 +14,9 @@ typedef struct _MessageQueue{
 }MESSAGE_QUEUE, *PMESSAGE_QUEUE;
 
 
-void initQueue(PMESSAGE_QUEUE queue);
+PMESSAGE_QUEUE initQueue();
 BOOL push(PMESSAGE_QUEUE queue, PMESSAGE messageToPush);
 PMESSAGE pop(PMESSAGE_QUEUE queue);
 BOOL destroyQueue(PMESSAGE_QUEUE queue);
+
 #endif

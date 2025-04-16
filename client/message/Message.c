@@ -1,13 +1,12 @@
-#include "Message.h"
 #include <Windows.h>
 #include <stdio.h>
-
+#include "Message.h"
+#include "../memoryCollector/MemoryCollector.h"
 PMESSAGE createMessage(BYTE type, DWORD size, PBYTE payload)
 {
-    PMESSAGE message = (PMESSAGE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(MESSAGE));
+    PMESSAGE message = (PMESSAGE)allocMemory(sizeof(MESSAGE));
     if(message == NULL)
     {   
-        printf("[-] HeapAlloc Failed %i", GetLastError());
         return NULL;
     }
 
@@ -19,11 +18,7 @@ PMESSAGE createMessage(BYTE type, DWORD size, PBYTE payload)
 
 BOOL freeMessage(PMESSAGE message)
 {
-    if(!HeapFree(GetProcessHeap(), 0, message->payload) && !HeapFree(GetProcessHeap(), 0, message))
-    {   
-        printf("[-] HeapFree Failed %i", GetLastError());
-        return FALSE;
-    }
-
+    freeMemory(message->payload); 
+    freeMemory(message);
     return TRUE;
 };

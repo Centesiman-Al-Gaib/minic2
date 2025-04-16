@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include "../message/Message.h"
+#include "../message/MessageQueue.h"
 /* Perform networks operations: send and receive messages*/
 
 
@@ -12,14 +13,14 @@
 typedef struct _SocketManager
 {
     SOCKET s;
-    PCSTR server;
-    u_short port;
+    PMESSAGE_QUEUE queueMessageReceived;
+    PMESSAGE_QUEUE queueMessagesToSend;
 } SOCKET_MANAGER, *PSOCKET_MANAGER;
 
 
-void initSocketManager(PSOCKET_MANAGER pSockManager);
+PSOCKET_MANAGER initSocketManager(PMESSAGE_QUEUE queueMessageReceived, PMESSAGE_QUEUE queueMessagesToSend);
 BOOL sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message);
-void receiveMessage(PSOCKET_MANAGER sManager, PMESSAGE message);
+void receiveMessage(PSOCKET_MANAGER sManager);
 BOOL destroySocketManager(PSOCKET_MANAGER pSockManager);
 
 #endif

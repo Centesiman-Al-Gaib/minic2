@@ -1,28 +1,29 @@
-#include "MessageQueue.h"
-#include "Message.h"
 #include <stdio.h>
 #include <Windows.h>
+#include "MessageQueue.h"
+#include "Message.h"
+#include "../memoryCollector/MemoryCollector.h"
 
-void initQueue(PMESSAGE_QUEUE queue)
+
+
+PMESSAGE_QUEUE initQueue()
 {   
-    PMESSAGE_QUEUE queueOut = (PMESSAGE_QUEUE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(MESSAGE_QUEUE));
-    queue = queueOut; 
-    if(queueOut == NULL)
+    PMESSAGE_QUEUE queue = (PMESSAGE_QUEUE)allocMemory(sizeof(MESSAGE_QUEUE));
+    if(queue == NULL)
     {
-        printf("[-] HeapAlloc failed %i", GetLastError());
-        return;
+        return NULL;
     }
-    queueOut->first = NULL;
-    queueOut->last = NULL;
+    queue->first = NULL;
+    queue->last = NULL;
+
+    return queue;
 };
 
 BOOL push(PMESSAGE_QUEUE queue, PMESSAGE messageToPush)
 {
-
-    PMESSAGE_QUEUE_NODE newElement = (PMESSAGE_QUEUE_NODE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(MESSAGE_QUEUE_NODE));
+    PMESSAGE_QUEUE_NODE newElement = (PMESSAGE_QUEUE_NODE)allocMemory(sizeof(MESSAGE_QUEUE_NODE));
     if(newElement == NULL)
     {
-        printf("[-] HeapAlloc failed %i", GetLastError());
         return FALSE;
     }
     newElement->message = messageToPush; // Set the message in the node
@@ -61,18 +62,12 @@ PMESSAGE pop(PMESSAGE_QUEUE queue)
         queue->last = NULL;
     }
 
-    if(!HeapFree(GetProcessHeap(), 0, firstNode))
-    {
-        printf("[-] HeapFree failed %i", GetLastError());
-        return FALSE;
-    }
-
+    freeMemory(firstNode);
     return messageToReturn;
-
-
 };
 
 BOOL destroyQueue(PMESSAGE_QUEUE queue)
 {
+    freeMemory(queue);
     return TRUE;
 };

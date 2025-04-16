@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <wincrypt.h>
 #include "Crypto.h"
-
+#include "../memoryCollector/MemoryCollector.h"
 
 
 DWORD hashAscii(PCSTR value)
@@ -121,7 +121,7 @@ DWORD frombase64GetLength(unsigned char* base64string,  DWORD lengthbase64string
 };
 PBYTE fromBase64GetBlob(unsigned char* base64string,  DWORD lengthbase64string, DWORD blobDataLength)
 {
-	PBYTE chiperText = (PBYTE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, blobDataLength);
+	PBYTE chiperText = (PBYTE)allocMemory(blobDataLength);
 	RtlSecureZeroMemory(chiperText, blobDataLength);
 	CryptStringToBinaryA(base64string, 0, CRYPT_STRING_BASE64, chiperText, &blobDataLength, NULL, NULL);
 	return chiperText;
@@ -142,8 +142,9 @@ PBYTE encrypt(unsigned char* input, DWORD length)
 	unsigned int j = context->j;
 	unsigned char* s = context->s;
 
-    PBYTE outputChiper = (PBYTE)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, length + 1);
+    PBYTE outputChiper = (PBYTE)allocMemory(length + 1);
 	PBYTE output = outputChiper;
+	PBYTE auxInput = input;
 	DWORD index = length;
     // Encryption loop
 	while (index > 0)
@@ -176,5 +177,13 @@ PBYTE encrypt(unsigned char* input, DWORD length)
 	context->i = i;
 	context->j = j;
 	output[length] = '\0';
+	freeMemory(auxInput);
     return output;
 }
+
+PCSTR decrypt(unsigned char* base64Blob, DWORD base64DBlobLength)
+{
+	DWORD blobStrLength = frombase64GetLength(base64Blob, base64DBlobLength);
+    PBYTE blob = fromBase64GetBlob(base64Blob, base64DBlobLength, blobStrLength);
+    return (PCSTR)encrypt(blob, blobStrLength);
+};

@@ -8,13 +8,12 @@
 
 int main(int argc, char** argv)
 {      
-    MESSAGE_QUEUE queue = {0};
-    SOCKET_MANAGER sManager = {0};
+    PMESSAGE_QUEUE queueToReceive = initQueue();
+    PMESSAGE_QUEUE queueToSend = initQueue();
+    PSOCKET_MANAGER sManager = initSocketManager(queueToReceive, queueToSend);
 
-    initQueue(&queue);
-    initSocketManager(&sManager);
-
-    destroySocketManager(&sManager);
-    destroyQueue(&queue);
+    destroySocketManager(sManager);
+    destroyQueue(queueToReceive);
+    destroyQueue(queueToSend);
     return 0;   
 }

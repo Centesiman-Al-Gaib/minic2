@@ -9,6 +9,7 @@
         "stdio.h": "c",
         "crypto.h": "c",
         "messagequeue.h": "c",
-        "message.h": "c"
+        "message.h": "c",
+        "crtdbg.h": "c"
     }
 }
