@@ -1,6 +1,6 @@
 TARGET = client.exe
 CC = C:\msys64\ucrt64\bin\gcc.exe
-SRCS = client.c SocketManager.c .\importer\Importer.c .\crypto\Crypto.c
+SRCS = client.c .\message\Message.c .\message\MessageQueue.c .\socketManager\SocketManager.c .\importer\Importer.c .\crypto\Crypto.c
 CFLAGS = -Wall -g 
 LIBS = -lws2_32 -lcrypt32
 

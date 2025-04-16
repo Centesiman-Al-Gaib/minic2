@@ -12,8 +12,8 @@ PCSTR hDefinitionsValuesA[] = {"connect","send","recv","GetModuleHandleA"};
 PCWSTR hDefinitionsW[] = {L"HASH_KERNERL32DLL_ROUTE"};
 PCWSTR hDefinitionsValuesW[] = {L"c:\\windows\\system32\\kernel32.dll"};
 
-PCSTR cryptDefinitions[] = {"CRYPT_WS2_32_DLL_ROUTE"};
-PCSTR cryptDefinitionsValues[] = {"C:\\Windows\\System32\\ws2_32.dll"};
+PCSTR cryptDefinitions[] = {"CRYPT_WS2_32_DLL_ROUTE","CRYPT_SERVER_DOMAIN","CRYPT_PORT_SERVER"};
+PCSTR cryptDefinitionsValues[] = {"C:\\Windows\\System32\\ws2_32.dll","127.0.0.1","8888"};
 
 int main()
 {
@@ -38,7 +38,7 @@ int main()
         CryptBinaryToString(chiper, sizeofchiper, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, NULL, &sizeToAlloc);
         LPSTR base64 = (LPSTR)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeToAlloc);
         CryptBinaryToString(chiper, sizeofchiper, CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, base64, &sizeToAlloc);
-        printf("#define %s\t%s\n\n",cryptDefinitions[i],base64);
+        printf("#define %s\t\"%s\"\n",cryptDefinitions[i],base64);
         HeapFree(GetProcessHeap(), 0, base64);
     }
 

