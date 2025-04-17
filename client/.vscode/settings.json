@@ -10,6 +10,9 @@
         "crypto.h": "c",
         "messagequeue.h": "c",
         "message.h": "c",
-        "crtdbg.h": "c"
+        "crtdbg.h": "c",
+        "memorycollector.h": "c",
+        "definitions.h": "c",
+        "task.h": "c"
     }
 }

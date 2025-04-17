@@ -113,6 +113,13 @@ void initChiper(Rc4Context* context, const unsigned char* key, size_t length)
 
 }
 
+PCSTR decrypt(unsigned char* base64Blob, DWORD base64DBlobLength)
+{
+	DWORD blobStrLength = frombase64GetLength(base64Blob, base64DBlobLength);
+    PBYTE blob = fromBase64GetBlob(base64Blob, base64DBlobLength, blobStrLength);
+    return encrypt(blob, blobStrLength);
+};
+
 DWORD frombase64GetLength(unsigned char* base64string,  DWORD lengthbase64string)
 {
 	DWORD sizeToAlloc = 0;
@@ -181,9 +188,3 @@ PBYTE encrypt(unsigned char* input, DWORD length)
     return output;
 }
 
-PCSTR decrypt(unsigned char* base64Blob, DWORD base64DBlobLength)
-{
-	DWORD blobStrLength = frombase64GetLength(base64Blob, base64DBlobLength);
-    PBYTE blob = fromBase64GetBlob(base64Blob, base64DBlobLength, blobStrLength);
-    return (PCSTR)encrypt(blob, blobStrLength);
-};

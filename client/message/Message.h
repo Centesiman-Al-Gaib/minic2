@@ -1,9 +1,10 @@
 #ifndef _MESSAGETYPE_
 #define _MESSAGETYPE_
-
-#define INIT_TYPE 0x01
-#define REQ_TASK_TYPE
 #include <Windows.h>
+
+#define PING_MESSAGE_TYPE 0 
+#define REQ_TASK_TYPE
+
 
 typedef struct _Message
 {

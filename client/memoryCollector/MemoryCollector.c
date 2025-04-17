@@ -6,14 +6,14 @@ LPVOID allocMemory(DWORD sizeToAlloc)
 {
     if(sizeToAlloc <= 0)
     {
-        return NULL;
+        exit(1);
     }
 
     LPVOID memoryToReturn = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeToAlloc);
     if(memoryToReturn == NULL)
     {
         printf("[-] HeapAlloc failed %i", GetLastError());
-        return FALSE;
+        exit(1);
     }
 
     return memoryToReturn;
