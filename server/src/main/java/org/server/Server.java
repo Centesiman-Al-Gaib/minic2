@@ -1,5 +1,8 @@
 package org.server;
 
+import org.server.handle.Handler;
+import org.server.message.Message;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,8 +44,10 @@ public class Server{
                 InputStream in = communicationWithClient.getInputStream();
                 System.out.println("[+] A client has connected...");
 
+                /* READING MESSAGE TYPE */
                 byte type = (byte) in.read();
 
+                /* READING PAYLOAD SIZE */
                 byte[] pSize = in.readNBytes(MESSAGE_SIZE_FIELD_SIZE);
                 if(pSize.length == 0)
                 {
@@ -52,18 +57,39 @@ public class Server{
                 ByteBuffer bb = ByteBuffer.wrap(pSize).order(ByteOrder.LITTLE_ENDIAN);
                 int size = bb.getInt();
 
-                byte[] payload = in.readNBytes(size);
-                if(payload.length != size)
+                /* READING PAYLOAD */
+                byte[] payloadBytes = in.readNBytes(size);
+                if(payloadBytes.length != size)
                 {
                     System.out.println("[-] An error occurred with the payload...");
                     break;
                 }
-                String stringPayload = new String(payload);
-                System.out.println(stringPayload);
+
+                /* GET MESSAGE OBJECT */
+                Message message = Message.parseMessage(type, size, payloadBytes);
+                if(message != null)
+                {
+                    /* HANDLE MESSAGE BY TYPE */
+                    System.out.println("New message receive");
+                    Handler handler = Handler.getHandle(message);
+                    byte[] response = handler.handle();
+                    if(response != null)
+                    {
+                        System.out.println("[+] Sending response to agent...");
+                        out.write(response);
+                    }
+
+                    else
+                    {
+                        System.out.println("[-] An error occurred with the response creation...");
+                        out.close();
+                    }
+
+                }
             }
             catch (IOException e)
             {
-                System.out.println(("An error occurred during server initialization..." + e.getMessage()));
+                System.out.println(("[-] An error occurred during server initialization..." + e.getMessage()));
                 throw new IOException();
             }
 

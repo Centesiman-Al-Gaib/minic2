@@ -12,11 +12,12 @@
             ],
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64",
+            "intelliSenseMode": "gcc-x64",
             "compilerArgs": [
                 "-lws2_32"
             ],
-            "compilerPath": "C:/msys64/ucrt64/bin/gcc.exe"
+            "compilerPath": "C:/msys64/ucrt64/bin/gcc.exe",
+            "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],
     "version": 4

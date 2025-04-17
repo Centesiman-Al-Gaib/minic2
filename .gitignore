@@ -1,4 +1,4 @@
-client/.vscode/
+client/.vscode*
 
 # Prerequisites
 *.d

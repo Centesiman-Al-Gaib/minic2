@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "*.c": "c",
+        "windows.h": "c",
+        "ws2tcpip.h": "c",
+        "winsock2.h": "c",
+        "stdlib.h": "c",
+        "socketmanager.h": "c",
+        "stdio.h": "c",
+        "crypto.h": "c",
+        "messagequeue.h": "c",
+        "message.h": "c",
+        "crtdbg.h": "c",
+        "memorycollector.h": "c",
+        "definitions.h": "c",
+        "task.h": "c"
+    }
+}
