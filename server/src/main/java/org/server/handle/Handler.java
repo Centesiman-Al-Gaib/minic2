@@ -12,6 +12,8 @@ public interface Handler {
         {
             case INIT:
                 return new InitHandler();
+            case PING:
+                return new PingHandler();
         }
         return null;
     }

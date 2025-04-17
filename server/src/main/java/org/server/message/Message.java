@@ -5,7 +5,7 @@ import java.nio.ByteOrder;
 
 import static org.server.message.MessageType.*;
 
-public abstract class Message {
+public class Message {
 
     MessageType type;
     int size;
@@ -15,9 +15,12 @@ public abstract class Message {
     {
         MessageType eType;
         switch (type){
-            case 0x1:
+            case 0x0:
+                eType = PING;
+                return new Message(eType, pSize, payloadBytes);
+            case 0x2:
                 eType = INIT;
-                return new InitMessage(eType, pSize, payloadBytes);
+                return new Message(eType, pSize, payloadBytes);
             case 0xF:
                 eType = DEBUG;
                 return null;
@@ -32,7 +35,7 @@ public abstract class Message {
         byte type;
         switch (messageType) {
             case DEBUG:
-                type = 0xF;
+                type = 0x0;
                 break;
             default:
                 return null;
@@ -53,11 +56,6 @@ public abstract class Message {
         bb.put(payload);
 
         return bb.array();
-    }
-
-    public Message()
-    {
-
     }
 
     public Message(MessageType type, Integer size, byte[] payload)

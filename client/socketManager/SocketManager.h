@@ -17,10 +17,21 @@ typedef struct _SocketManager
     PMESSAGE_QUEUE queueMessagesToSend;
 } SOCKET_MANAGER, *PSOCKET_MANAGER;
 
+typedef struct _SendFunctionArgs
+{
+    PSOCKET_MANAGER sManager;
+} SEND_FUNCTION_ARGS, *PSEND_FUNCTION_ARGS;
+
+typedef struct _RecvFunctionArgs
+{
+    PSOCKET_MANAGER sManager;
+} RECV_FUNCTION_ARGS, *PRECV_FUNCTION_ARGS;
 
 PSOCKET_MANAGER initSocketManager(PMESSAGE_QUEUE queueMessageReceived, PMESSAGE_QUEUE queueMessagesToSend);
-BOOL sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message);
-void receiveMessage(PSOCKET_MANAGER sManager);
 BOOL destroySocketManager(PSOCKET_MANAGER pSockManager);
+BOOL sendMessageThread(PSEND_FUNCTION_ARGS args);
+void receiveMessageThread(PRECV_FUNCTION_ARGS args);
+
+
 
 #endif

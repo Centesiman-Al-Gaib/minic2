@@ -35,13 +35,14 @@ public class Server{
     }
 
     public void runServer() throws IOException {
+        Socket communicationWithClient = this.serverSocket.accept();
+        OutputStream out = communicationWithClient.getOutputStream();
+        InputStream in = communicationWithClient.getInputStream();
         while(true)
         {
             try
             {
-                Socket communicationWithClient = this.serverSocket.accept();
-                OutputStream out = communicationWithClient.getOutputStream();
-                InputStream in = communicationWithClient.getInputStream();
+
                 System.out.println("[+] A client has connected...");
 
                 /* READING MESSAGE TYPE */
@@ -70,7 +71,7 @@ public class Server{
                 if(message != null)
                 {
                     /* HANDLE MESSAGE BY TYPE */
-                    System.out.println("New message receive");
+                    System.out.println("[+] New message receive");
                     Handler handler = Handler.getHandle(message);
                     byte[] response = handler.handle();
                     if(response != null)
@@ -78,7 +79,6 @@ public class Server{
                         System.out.println("[+] Sending response to agent...");
                         out.write(response);
                     }
-
                     else
                     {
                         System.out.println("[-] An error occurred with the response creation...");
