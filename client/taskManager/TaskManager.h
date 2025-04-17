@@ -12,12 +12,18 @@ typedef struct _TaskManager
     PMESSAGE_QUEUE queueMessagesToSend;
 } TASK_MANAGER, *PTASK_MANAGER;
 
-typedef void (*TaskHandler)(PBYTE payload);
+typedef struct _ProcessMessageArgs
+{
+    PTASK_MANAGER pTaskManager;
+} PROCESS_MESSAGE_ARGS, *PPROCESS_MESSAGE_ARGS;
+
+
+typedef PMESSAGE (*TaskHandler)(PBYTE payload);
 
 PTASK_MANAGER initTaskManager(PMESSAGE_QUEUE queueMessageReceived, PMESSAGE_QUEUE queueMessagesToSend);
 BOOL destroyTaskManager(PTASK_MANAGER PTASK_MANAGER);
-void processMessage(PTASK_MANAGER pTaskManager);
-void performTask(PMESSAGE message);
+void processMessageThread(PPROCESS_MESSAGE_ARGS args);
+PMESSAGE performTask(PMESSAGE message);
 void finishTask();
 
 

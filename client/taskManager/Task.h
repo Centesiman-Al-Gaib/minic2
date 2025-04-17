@@ -1,5 +1,6 @@
 #ifndef _TASK_
 #define _TASK_
+#include "../message/Message.h"
 
 PMESSAGE pingServer();
 PMESSAGE initAgentId(PBYTE payload);
