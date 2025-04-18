@@ -46,7 +46,6 @@ void _processMessage(PTASK_MANAGER pTaskManager)
         PMESSAGE messageReceive = pop(pTaskManager->queueMessageReceived);
         if(messageReceive == NULL)
         {
-            printf("[+] Sending ping message...\n");
             PMESSAGE messageToSend = pingServer(); // Prepare PING message to server
             push(pTaskManager->queueMessagesToSend, messageToSend); // Push PING message to message to send queue
             Sleep(pTaskManager->sleepTime); // SLEEP while message is sended

@@ -41,7 +41,6 @@ BOOL destroySocketManager(PSOCKET_MANAGER pSockManager)
 void receiveMessageThread(PRECV_FUNCTION_ARGS args)
 {
     PSOCKET_MANAGER pSockManager =  args->sManager;
-    printf("[+] Receiver prepare...\n");
     while(TRUE)
     {
        PMESSAGE messageReceived = _receiveMessage(pSockManager);
@@ -52,7 +51,6 @@ void receiveMessageThread(PRECV_FUNCTION_ARGS args)
 BOOL sendMessageThread(PSEND_FUNCTION_ARGS args)
 {
     PSOCKET_MANAGER pSockManager =  args->sManager;
-    printf("[+] Sender prepare...\n");
     while(TRUE)
     {
         PMESSAGE messageToSend = pop(pSockManager->queueMessagesToSend);
@@ -71,7 +69,6 @@ BOOL _sendMessage(PSOCKET_MANAGER sManager, PMESSAGE message)
     {
         return FALSE;
     }
-    printf("[+] Sending new message...\n");
     /* INITIALIZE SIZE VARIABLES */
     DWORD size = message->size;
     DWORD sizeToAlloc = size + sizeof(DWORD) + 1; // sizeToAlloc is -> size of the payload + size of a DWORD + SIZE of a char
