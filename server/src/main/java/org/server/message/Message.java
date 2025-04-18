@@ -11,34 +11,61 @@ public class Message {
     int size;
     byte[] payload;
 
-    public static Message parseMessage(byte type, int pSize, byte[] payloadBytes)
+    public static Message parseMessage(int type, int pSize, byte[] payloadBytes)
     {
         MessageType eType;
-        switch (type){
-            case 0x0:
+        switch (type)
+        {
+            case 0:
                 eType = PING;
-                return new Message(eType, pSize, payloadBytes);
-            case 0x2:
+                break;
+            case 1:
                 eType = INIT;
-                return new Message(eType, pSize, payloadBytes);
-            case 0xF:
-                eType = DEBUG;
-                return null;
+                break;
+            case 2:
+                eType = CLASSIC_INJECTION;
+                break;
+            case 3:
+                eType = FILE_MAPPING_INJECTION;
+                break;
+            case 4:
+                eType = APC_TASK_INJECTION;
+                break;
+            case 5:
+                eType = DLL_INJECTION;
+                break;
             default:
                 eType = UNKNOWN;
-                return null;
         }
+        return new Message(eType, pSize, payloadBytes);
+
     }
 
     public static byte[] createResponse(MessageType messageType, byte[] payload)
     {
-        byte type;
-        switch (messageType) {
-            case DEBUG:
-                type = 0x0;
+        int type;
+        switch (messageType)
+        {
+            case PING:
+                type = 0;
+                break;
+            case INIT:
+                type = 1;
+                break;
+            case CLASSIC_INJECTION:
+                type = 2;
+                break;
+            case FILE_MAPPING_INJECTION:
+                type = 3;
+                break;
+            case APC_TASK_INJECTION:
+                type = 4;
+                break;
+            case DLL_INJECTION:
+                type = 5;
                 break;
             default:
-                return null;
+                type = -1;
         }
         int pSize = payload.length;
         if(pSize == 0)
@@ -51,7 +78,7 @@ public class Message {
 
         bb = ByteBuffer.allocate(1 + 4 + pSize).order(ByteOrder.BIG_ENDIAN);
 
-        bb.put(type);
+        bb.put((byte)type);
         bb.put(bSize);
         bb.put(payload);
 
