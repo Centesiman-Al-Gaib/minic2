@@ -126,6 +126,7 @@ DWORD frombase64GetLength(unsigned char* base64string,  DWORD lengthbase64string
 	CryptStringToBinaryA(base64string, 0, CRYPT_STRING_BASE64, NULL, &sizeToAlloc, NULL, NULL);
 	return sizeToAlloc;
 };
+
 PBYTE fromBase64GetBlob(unsigned char* base64string,  DWORD lengthbase64string, DWORD blobDataLength)
 {
 	PBYTE chiperText = (PBYTE)allocMemory(blobDataLength);

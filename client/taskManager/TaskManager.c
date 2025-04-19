@@ -72,7 +72,7 @@ PMESSAGE performTask(PMESSAGE message)
 
     PBYTE payload = message->payload;
     TaskHandler handler = handles[type];
-    PMESSAGE messageToSend = handler(payload);
+    PMESSAGE messageToSend = handler(payload, message->size);
     freeMessage(message);
     return messageToSend;
 };

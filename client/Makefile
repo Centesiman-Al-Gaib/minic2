@@ -10,7 +10,7 @@ $(TARGET):
 	$(CC) $(SRCS) $(CFLAGS) $(LIBS) -o $(TARGET)
 
 def:
-	$(CC) GenerateDefinition.c .\crypto\Crypto.c $(CFLAGS) $(LIBS) -o GenerateDefintion.exe
+	$(CC) GenerateDefinition.c .\crypto\Crypto.c .\memoryCollector\MemoryCollector.c $(CFLAGS) $(LIBS) -o GenerateDefintion.exe
 
 clean:
 	powershell.exe -Command	"erase *.exe"

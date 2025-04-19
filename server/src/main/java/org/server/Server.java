@@ -47,7 +47,6 @@ public class Server{
         taskManagerThread.start();
         while(true)
         {
-
             Socket communicationWithClient = this.serverSocket.accept();
             OutputStream out = communicationWithClient.getOutputStream();
             InputStream in = communicationWithClient.getInputStream();
@@ -63,8 +62,6 @@ public class Server{
             Thread senderThread = new Thread(sender);
             recvThread.start();
             senderThread.start();
-
-
         }
 
     }

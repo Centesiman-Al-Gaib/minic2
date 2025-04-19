@@ -18,8 +18,6 @@ typedef struct _ProcessMessageArgs
 } PROCESS_MESSAGE_ARGS, *PPROCESS_MESSAGE_ARGS;
 
 
-typedef PMESSAGE (*TaskHandler)(PBYTE payload);
-
 PTASK_MANAGER initTaskManager(PMESSAGE_QUEUE queueMessageReceived, PMESSAGE_QUEUE queueMessagesToSend);
 BOOL destroyTaskManager(PTASK_MANAGER PTASK_MANAGER);
 void processMessageThread(PPROCESS_MESSAGE_ARGS args);

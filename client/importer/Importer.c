@@ -100,7 +100,7 @@ HMODULE getModuleHandleCen(LPCSTR moduleName)
     return NULL;
 };
 
-FARPROC getProcAddrCen(LPCSTR moduleName, DWORD hash)
+PVOID getProcAddrCen(LPCSTR moduleName, DWORD hash)
 {
     /* DECRYPT MOUDLE NAME */
     LPCSTR moduleNameDecrypted = decrypt(moduleName, strlen(moduleName));

@@ -8,6 +8,6 @@
 #include <stdio.h>
 
 HMODULE getModuleHandleCen(LPCSTR moduleNam);
-FARPROC getProcAddrCen(LPCSTR moduleName, DWORD hash);
+PVOID getProcAddrCen(LPCSTR moduleName, DWORD hash);
 
 #endif
