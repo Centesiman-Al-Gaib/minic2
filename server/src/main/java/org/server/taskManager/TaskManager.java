@@ -51,6 +51,9 @@ public class TaskManager implements Runnable {
             System.out.println("2. FILE_MAPPING_INJECTION");
             System.out.println("3. APC_TASK_INJECTION");
             System.out.println("4. DLL_INJECTION");
+            System.out.println("5. COMMAND_LINE_EXECUTION");
+
+
 
             System.out.print("\nSelecciona una tarea (1-4): ");
             int selectedTask;
@@ -62,7 +65,7 @@ public class TaskManager implements Runnable {
                 continue;
             }
 
-            if (selectedTask < 1 || selectedTask > 4) {
+            if (selectedTask < 1 || selectedTask > 5) {
                 System.out.println("[-] Opción fuera de rango. Inténtalo de nuevo...");
                 sleep(2000);
                 continue;

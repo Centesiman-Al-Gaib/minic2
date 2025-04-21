@@ -34,6 +34,9 @@ public class Message {
             case 5:
                 eType = DLL_INJECTION;
                 break;
+            case 6:
+                eType = COMMAND_LINE_EXECUTION;
+                break;
             default:
                 eType = UNKNOWN;
         }
@@ -63,6 +66,9 @@ public class Message {
                 break;
             case DLL_INJECTION:
                 type = 5;
+                break;
+            case COMMAND_LINE_EXECUTION:
+                type = 6;
                 break;
             default:
                 type = -1;

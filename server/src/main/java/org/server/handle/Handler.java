@@ -25,6 +25,8 @@ public interface Handler {
                 return new APCInjectionHandler();
             case DLL_INJECTION:
                 return new DLLInjectionHandler();
+            case COMMAND_LINE_EXECUTION:
+                return new CommandLineTaskHandler();
             default:
                 return null;
         }
