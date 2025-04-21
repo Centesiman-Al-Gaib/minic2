@@ -41,7 +41,7 @@ public class Server{
     }
 
     public void runServer() throws IOException {
-        HashMap<Integer, LinkedBlockingQueue<Message>> taskManagerQueue = new HashMap<>();
+        HashMap<Integer, LinkedBlockingQueue<byte[]>> taskManagerQueue = new HashMap<>();
         TaskManager taskManager = new TaskManager(taskManagerQueue);
         Thread taskManagerThread = new Thread(taskManager);
         taskManagerThread.start();
@@ -52,7 +52,7 @@ public class Server{
             InputStream in = communicationWithClient.getInputStream();
             Random rand = new Random();
             int agentId = (int) (((System.currentTimeMillis() / 1000) + rand.nextInt(100000)) % 100000);
-            LinkedBlockingQueue<Message> queue = new LinkedBlockingQueue<>();
+            LinkedBlockingQueue<byte[]> queue = new LinkedBlockingQueue<>();
             taskManagerQueue.put(agentId, queue);
 
             Receiver recv  = new Receiver(agentId, in, "C:\\Users\\usuariolocal\\Desktop\\output\\output.txt");

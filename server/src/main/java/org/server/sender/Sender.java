@@ -9,9 +9,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Sender implements Runnable{
 
     OutputStream out;
-    LinkedBlockingQueue<Message> taskQueue;
+    LinkedBlockingQueue<byte[]> taskQueue;
 
-    public Sender(OutputStream out, LinkedBlockingQueue<Message> taskQueue)
+    public Sender(OutputStream out, LinkedBlockingQueue<byte[]> taskQueue)
     {
         this.out = out;
         this.taskQueue = taskQueue;
@@ -26,13 +26,11 @@ public class Sender implements Runnable{
             try
             {
 
-                Message messageToSend = taskQueue.take();
-                Handler handler = Handler.getHandle(messageToSend);
-                byte[] response = handler.handle();
-                if(response != null)
+                byte[] messageToSend = taskQueue.take();
+                if(messageToSend != null)
                 {
                     System.out.println("[+] Sending response to agent...");
-                    this.out.write(response);
+                    this.out.write(messageToSend);
                 }
                 else
                 {
